@@ -299,7 +299,7 @@ export default defineFlow({
     {
       from: "classify",
       switch: {
-        on: "$.route",
+        on: "$output.route",
         cases: {
           verify: "test_changes",
           close: "comment_and_close",

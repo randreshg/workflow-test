@@ -1,7 +1,8 @@
 /**
- * Echo Flow — Simple test to verify agent spawning works.
+ * Echo Flow — workflow-test
  *
- * Two parallel ACP nodes: one with codex, one with claude,
+ * Simple test to verify agent spawning works.
+ * Two sequential ACP nodes: one with codex, one with claude,
  * both answering the same question to compare outputs.
  *
  * Usage:

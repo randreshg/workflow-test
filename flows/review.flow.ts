@@ -176,7 +176,7 @@ export default defineFlow({
     {
       from: "judge_verdict",
       switch: {
-        on: "$.route",
+        on: "$output.route",
         cases: {
           approve: "post_approval",
           request_changes: "post_changes",
