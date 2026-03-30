@@ -293,8 +293,7 @@ export default defineFlow({
 
   edges: [
     { from: "load_pr", to: "fetch_context" },
-    { from: "load_pr", to: "fetch_diff" },
-    { from: "fetch_context", to: "extract_intent" },
+    { from: "fetch_context", to: "fetch_diff" },
     { from: "fetch_diff", to: "extract_intent" },
     { from: "extract_intent", to: "classify" },
     {
