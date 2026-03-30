@@ -7,7 +7,7 @@ name = "workflow-test"
 packages = ["nodejs>=22"]
 
 [npm]
-acpx = "latest"
+pnpm = "latest"
 
 [tools]
 node = { command = "node", version = ">=22" }

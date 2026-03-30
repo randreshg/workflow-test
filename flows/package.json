@@ -9,9 +9,10 @@
     "triage": "acpx flow run ./triage.flow.ts --approve-all"
   },
   "dependencies": {
-    "acpx": "^0.4.0"
+    "acpx": "file:../../acpx"
   },
   "devDependencies": {
-    "@types/node": "^25.5.0"
+    "@types/node": "^25.5.0",
+    "tsx": "^4.21.0"
   }
 }
