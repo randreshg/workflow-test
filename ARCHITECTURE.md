@@ -239,6 +239,121 @@ Skills in `.agents/skills/` are synced to `.claude/skills/` and `~/.codex/skills
 
 ---
 
+## Why dekk — Commands Become Skills
+
+dekk is a Python CLI framework (built on [Typer](https://typer.tiangolo.com/))
+that any project can adopt as its terminal interface. The key insight is:
+**every CLI command a developer types is knowledge an agent needs too.**
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│  COMMANDS → SKILLS PIPELINE                                             │
+│                                                                          │
+│  Developer defines commands          dekk agents init reads them         │
+│  ─────────────────────────          ─────────────────────────────        │
+│                                                                          │
+│  Mode A: dekk-based CLI (Python)     Introspects @app.command()         │
+│  ┌──────────────────────────┐        with agent_skill=True              │
+│  │ @app.command(             │                                           │
+│  │   agent_skill=True        │ ──────> .agents/skills/build/SKILL.md    │
+│  │ )                         │         ---                               │
+│  │ def build():              │         name: build                       │
+│  │   """Build the project""" │         description: Build the project    │
+│  │   subprocess.run(["make"])│         ---                               │
+│  └──────────────────────────┘         Run: `carts build`                │
+│                                                                          │
+│  Mode B: .dekk.toml (any project)    Reads [commands] section           │
+│  ┌──────────────────────────┐                                           │
+│  │ [commands]                │                                           │
+│  │ build = {                 │ ──────> .agents/skills/build/SKILL.md    │
+│  │   run = "cmake -B build", │         ---                               │
+│  │   description = "Build"   │         name: build                       │
+│  │ }                         │         description: Build                │
+│  └──────────────────────────┘         ---                               │
+│                                        Run: `cmake -B build`            │
+│                                                                          │
+│  Both produce the SAME output: .agents/skills/<cmd>/SKILL.md            │
+│  Then: dekk agents generate → CLAUDE.md + AGENTS.md + .cursorrules + …  │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+### Mode A: dekk-Based CLIs
+
+Projects with a Python CLI built on dekk mark commands with `agent_skill=True`:
+
+```python
+from dekk import Typer
+app = Typer(name="carts")
+
+@app.command(agent_skill=True)
+def build():
+    """Build the CARTS compiler from source."""
+    subprocess.run(["cmake", "-B", "build", "-G", "Ninja"])
+    subprocess.run(["cmake", "--build", "build"])
+
+@app.command(agent_skill=True)
+def test():
+    """Run the CARTS test suite."""
+    subprocess.run(["ctest", "--test-dir", "build"])
+
+@app.command()          # no agent_skill → NOT a skill
+def version():
+    """Print version."""
+    print("1.0.0")
+```
+
+When `carts agents init` runs, it introspects the parent app, finds commands
+tagged with `agent_skill=True`, and generates SKILL.md templates. The
+developer's CLI vocabulary (`carts build`, `carts test`) becomes the agent's
+vocabulary — automatically.
+
+The `create_agents_app()` factory makes this a one-liner:
+
+```python
+from dekk.agents import create_agents_app
+
+# Any dekk-based CLI gets agents commands for free
+agents_app = create_agents_app(source_dir=".carts", parent_app=app)
+app.add_typer(agents_app, name="agents")
+# Now available: carts agents init / generate / install / status / list / flow
+```
+
+### Mode B: Plain Projects
+
+Projects without a Python CLI declare commands in `.dekk.toml`:
+
+```toml
+[project]
+name = "my-compiler"
+
+[commands]
+build = { run = "cmake -B build -G Ninja && cmake --build build", description = "Build from source" }
+test  = { run = "ctest --test-dir build", description = "Run test suite" }
+lint  = { run = "clang-format --dry-run src/**/*.cpp", description = "Check code style" }
+```
+
+`dekk agents init` reads `[commands]` and generates the same SKILL.md templates.
+No Python code required — any C++, Rust, JavaScript, or Go project can adopt
+this pattern by adding a `.dekk.toml` file.
+
+### Why This Matters
+
+Without the commands→skills pipeline, making a project AI-friendly requires
+writing duplicate instructions: once for the human (README, Makefile, scripts)
+and once for the agent (SKILL.md, AGENTS.md, CLAUDE.md). With dekk:
+
+1. **Define once** — commands exist for the developer (CLI or TOML)
+2. **Auto-generate** — `dekk agents init` turns them into SKILL.md templates
+3. **Customize** — developer adds troubleshooting tips, examples, gotchas
+4. **Propagate** — `dekk agents generate` syncs to all agent config formats
+5. **Embed** — acpx flows select which skills each agent step receives
+
+The same `build` command that a developer types in their terminal becomes the
+skill that an AI agent reads before building the project in an automated
+workflow. Zero duplication, one source of truth.
+
+---
+
 ## Two-Layer Skill Injection
 
 This is the core design insight. Every agent needs two kinds of knowledge:
