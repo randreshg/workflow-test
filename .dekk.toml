@@ -2,9 +2,15 @@
 name = "workflow-test"
 description = "Agentic workflow orchestration with acpx flows"
 
+[conda]
+name = "workflow-test"
+packages = ["nodejs>=22"]
+
+[npm]
+acpx = "latest"
+
 [tools]
 node = { command = "node", version = ">=22" }
-npm = { command = "npm" }
 acpx = { command = "acpx" }
 codex = { command = "codex" }
 claude = { command = "claude" }
